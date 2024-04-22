@@ -1,0 +1,23 @@
+{
+    "name": "PWA DEMO FULLNAME Manifest",
+    "short_name": "PWA DEMO Manifest",
+    "icons": [
+        {
+            "src": "./logo.png",
+            "type": "image/png",
+            "sizes": "128x128"
+        },
+        {
+            "src": "./logo.png",
+            "type": "image/png",
+            "sizes": "256x256"
+        },
+        {
+            "src": "./logo.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        }
+    ],
+    "display": "standalone",
+    "start_url": "/"
+}

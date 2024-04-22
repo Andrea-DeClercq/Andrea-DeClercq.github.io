@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma liste de films</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="manifest" href="/app.webmanifest">
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5 mb-4 text-center">Les derniers films</h1>
+        <div id="carouselFilm" class="carousel slide" data-ride="carousel">
+            <div class="carousel-inner" id="carouselInner">
+            </div>
+            <a class="carousel-control-prev" href="#carouselFilm" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Précédent</span>
+            </a>
+            <a class="carousel-control-next" href="#carouselFilm" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Suivant</span>
+            </a>
+        </div>
+
+        <div class="mt-5">
+            <h2>Liste des films disponibles</h2>
+            <ul id="filmList" class="list-group">
+                <!-- Les films seront ajoutés ici dynamiquement -->
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+        function loadFilms() {
+            fetch('http://www.omdbapi.com/?apikey=4a05c0ae&s=Batman')
+                .then(response => response.json())
+                .then(data => {
+                    const carouselInner = document.getElementById('carouselInner');
+                    const filmList = document.getElementById('filmList');
+                    for (let i = 0; i < 3 && i < data.Search.length; i++) {
+                        const film = data.Search[i];
+                        const carouselItem = document.createElement('div');
+                        carouselItem.classList.add('carousel-item');
+                        if (i === 0) {
+                            carouselItem.classList.add('active');
+                        }
+                        carouselItem.innerHTML = `
+                            <img src="${film.Poster}" class="d-block mx-auto" alt="${film.Title}">
+                        `;
+                        carouselInner.appendChild(carouselItem);
+                    }
+
+                    data.Search.forEach(film => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('list-group-item');
+                        listItem.innerText = `${film.Title} (${film.Year})`;
+                        filmList.appendChild(listItem);
+                    });
+                })
+                .catch(error => console.error('Erreur lors du chargement des données :', error));
+        }
+
+
+        // Appel à la fonction pour charger les films lors du chargement de la page
+        document.addEventListener('DOMContentLoaded', loadFilms);
+
+        navigator.serviceWorker.register('./sw.js');
+    </script>
+</body>
+</html>

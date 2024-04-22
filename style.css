@@ -1,0 +1,24 @@
+/* Personnalisation de la taille du carousel */
+#carouselFilm {
+    max-width: 500px; /* Changer la largeur maximale selon vos besoins */
+    margin: auto; /* Centrer le carousel */
+}
+/* Taille des affiches de films dans le carousel */
+.carousel-item img {
+    max-height: 500px; /* Hauteur maximale des affiches de films */
+    width: auto; /* Ajustement automatique de la largeur pour conserver les proportions */
+}
+.carousel-control-prev,
+.carousel-control-next {
+    color: #000; /* Texte noir */
+}
+
+/* Personnalisation des icônes des boutons */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: #000; /* Couleur de l'icône noir */
+}
+
+body {
+    background-color: #D3D3D3;
+}
