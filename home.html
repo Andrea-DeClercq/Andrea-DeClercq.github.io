@@ -10,6 +10,7 @@
 </head>
 <body>
     <div class="container">
+        <button class="btn btn-primary" id="notifications">Notif test</button>
         <h1 class="mt-5 mb-4 text-center">Les derniers films</h1>
         <div id="carouselFilm" class="carousel slide" data-ride="carousel">
             <div class="carousel-inner" id="carouselInner">
@@ -37,45 +38,16 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <script>
-    const CACHE_NAME = "Cache 2.0";
     const API_URL = "https://www.omdbapi.com/?apikey=4a05c0ae&s=Batman";
-    function loadFilms() {
-        if (navigator.onLine) {
-            fetchAndCacheData();
-        } else {
-            loadCachedData();
-        }
-    }
 
-    function fetchAndCacheData() {
+    function loadFilms() {
         fetch(API_URL)
             .then(response => response.json())
-            .then(data => {
-                cacheData(data);
-                displayDataResponse(data);
-            })
-            .catch(error => console.error ('Err cache'+ error))
+            .then(displayDataResponse)
+            .catch(error => console.error('Erreur lors de la récupération des films :', error));
     }
 
-    function cacheData(data) {
-        if ('caches' in window) {
-            caches.open(CACHE_NAME).then(cache => {
-                cache.put(API_URL, new Response(JSON.stringify(data)));
-            });
-        }
-    }
-
-    function loadCachedData() {
-        caches.match(API_URL).then(cachedResponse => {
-            if (cachedResponse) {
-                return cachedResponse.json().then(data => {
-                    displayDataResponse(data)
-                });
-            }
-        });
-    }
-
-    function  displayDataResponse(data){
+    function displayDataResponse(data) {
         const carouselInner = document.getElementById('carouselInner');
         const filmList = document.getElementById('filmList');
 
@@ -100,6 +72,56 @@
             listItem.classList.add('list-group-item');
             listItem.innerText = `${film.Title} (${film.Year})`;
             filmList.appendChild(listItem);
+        });
+    }
+
+    // Permet d'envoyé un film aléatoire lors de la pression du bouton
+    const button = document.getElementById("notifications");
+    button.addEventListener("click", () => {
+    Notification.requestPermission().then((result) => {
+        if (result === "granted") {
+        randomNotification();
+        }
+    });
+    });
+
+    // Signal l'utilisateur du passage hors connexion
+    function sendOfflineNotification() {
+        const offlineMessage = "Vous êtes actuellement hors connexion.";
+        const options = {
+            body: offlineMessage,
+            icon: "/path/to/offline-icon.png"
+        };
+        if (Notification.permission === "granted") {
+            new Notification("Hors connexion", options);
+        }
+    }
+
+    function randomNotification() {
+        const CACHE_NAME = "Cache 2.0"
+        caches.open(CACHE_NAME).then(cache => {
+            cache.match(API_URL).then(response => {
+                if (response) {
+                    response.json().then(data => {
+                        const films = data.Search;
+                        if (films && films.length > 0) {
+                            const randomIndex = Math.floor(Math.random() * films.length);
+                            const film = films[randomIndex];
+                            const notifTitle = film.Title;
+                            const notifBody = `Sorti en ${film.Year}.`;
+                            const notifImg = film.Poster;
+                            const options = {
+                                body: notifBody,
+                                icon: notifImg,
+                            };
+                            if (Notification.permission === "granted") {
+                                new Notification(notifTitle, options);
+                                console.log('notif')
+                            }
+                        }
+                    });
+                }
+            });
         });
     }
 

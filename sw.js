@@ -38,14 +38,13 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-    const requestUrl = new URL(event.request.url)
-    
+    const requestUrl = new URL(event.request.url);
     if (requestUrl.origin === "https://www.omdbapi.com") {
         event.respondWith(
             caches.open(CACHE_NAME).then(cache => {
                 return cache.match(event.request).then(cachedResponse => {
                     if (cachedResponse) {
-                        return cachedResponse
+                        return cachedResponse;
                     } else {
                         return fetch(event.request).then(response => {
                             cache.put(event.request, response.clone());
@@ -60,13 +59,19 @@ self.addEventListener('fetch', event => {
     } else {
         // Gérer les autres requêtes
         event.respondWith(
-            (async () => {
-                const cachedResponse = await caches.match(event.request);
-                if (cachedResponse) return cachedResponse;
-
-                const response = await fetch(event.request);
-                return response;
-            })()
+            fetch(event.request).catch(() => {
+                return caches.match(event.request);
+            })
+        );
+    }
+    if (!navigator.onLine && event.request.mode === 'navigate') {
+        const offlineMessage = "Vous êtes actuellement en mode hors connexion. Les données affichées sont potentiellement périmées.";
+        const options = {
+            body: offlineMessage,
+            icon: `${BASE}/offline.png`
+        };
+        event.waitUntil(
+            self.registration.showNotification("Hors connexion", options)
         );
     }
 });
