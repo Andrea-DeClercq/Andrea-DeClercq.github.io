@@ -31,46 +31,79 @@
             </ul>
         </div>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <script>
-        function loadFilms() {
-            fetch('http://www.omdbapi.com/?apikey=4a05c0ae&s=Batman')
-                .then(response => response.json())
-                .then(data => {
-                    const carouselInner = document.getElementById('carouselInner');
-                    const filmList = document.getElementById('filmList');
-                    for (let i = 0; i < 3 && i < data.Search.length; i++) {
-                        const film = data.Search[i];
-                        const carouselItem = document.createElement('div');
-                        carouselItem.classList.add('carousel-item');
-                        if (i === 0) {
-                            carouselItem.classList.add('active');
-                        }
-                        carouselItem.innerHTML = `
-                            <img src="${film.Poster}" class="d-block mx-auto" alt="${film.Title}">
-                        `;
-                        carouselInner.appendChild(carouselItem);
-                    }
+    const CACHE_NAME = "Cache 2.0";
+    const API_URL = "https://www.omdbapi.com/?apikey=4a05c0ae&s=Batman";
+    function loadFilms() {
+        if (navigator.onLine) {
+            fetchAndCacheData();
+        } else {
+            loadCachedData();
+        }
+    }
 
-                    data.Search.forEach(film => {
-                        const listItem = document.createElement('li');
-                        listItem.classList.add('list-group-item');
-                        listItem.innerText = `${film.Title} (${film.Year})`;
-                        filmList.appendChild(listItem);
-                    });
-                })
-                .catch(error => console.error('Erreur lors du chargement des données :', error));
+    function fetchAndCacheData() {
+        fetch(API_URL)
+            .then(response => response.json())
+            .then(data => {
+                cacheData(data);
+                displayDataResponse(data);
+            })
+            .catch(error => console.error ('Err cache'+ error))
+    }
+
+    function cacheData(data) {
+        if ('caches' in window) {
+            caches.open(CACHE_NAME).then(cache => {
+                cache.put(API_URL, new Response(JSON.stringify(data)));
+            });
+        }
+    }
+
+    function loadCachedData() {
+        caches.match(API_URL).then(cachedResponse => {
+            if (cachedResponse) {
+                return cachedResponse.json().then(data => {
+                    displayDataResponse(data)
+                });
+            }
+        });
+    }
+
+    function  displayDataResponse(data){
+        const carouselInner = document.getElementById('carouselInner');
+        const filmList = document.getElementById('filmList');
+
+        carouselInner.innerHTML = '';
+        filmList.innerHTML = '';
+
+        for (let i = 0; i < 3 && i < data.Search.length; i++) {
+            const film = data.Search[i];
+            const carouselItem = document.createElement('div');
+            carouselItem.classList.add('carousel-item');
+            if (i === 0) {
+                carouselItem.classList.add('active');
+            }
+            carouselItem.innerHTML = `
+                <img src="${film.Poster}" class="d-block mx-auto" alt="${film.Title}">
+            `;
+            carouselInner.appendChild(carouselItem);
         }
 
+        data.Search.forEach(film => {
+            const listItem = document.createElement('li');
+            listItem.classList.add('list-group-item');
+            listItem.innerText = `${film.Title} (${film.Year})`;
+            filmList.appendChild(listItem);
+        });
+    }
 
-        // Appel à la fonction pour charger les films lors du chargement de la page
-        document.addEventListener('DOMContentLoaded', loadFilms);
-
-        navigator.serviceWorker.register('./sw.js');
-    </script>
-</body>
+    document.addEventListener('DOMContentLoaded', loadFilms);
+    navigator.serviceWorker.register('./sw.js');
+</script>
 </html>

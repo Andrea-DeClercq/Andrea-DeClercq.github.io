@@ -1,7 +1,13 @@
-const NAME = "SW V1.0"
-const CACHE_NAME = "Cache 1.1"
-const RESOURCES = ["./home.html", "/app.webmanifest", "films.json", "style.css"]
-const API_URL = "http://www.omdbapi.com/?apikey=4a05c0ae&s=Batman"
+const NAME = "SW V2.0"
+const BASE = location.protocol + "//" + location.host;
+const CACHE_NAME = "Cache 2.0"
+const RESOURCES = [
+        `${BASE}/home.html`,
+        `${BASE}/app.webmanifest`,
+        `${BASE}/films.json`,
+        `${BASE}/style.css`
+    ]
+const API_URL = "https://www.omdbapi.com/?apikey=4a05c0ae&s=Batman"
 
 self.addEventListener('install', event => {
     console.log(`${NAME} installing...`);
@@ -32,15 +38,35 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-    event.respondWith(
-        (async () => {
-            const cachedResponse = await caches.match(event.request);
-            if (cachedResponse) return cachedResponse
+    const requestUrl = new URL(event.request.url)
+    
+    if (requestUrl.origin === "https://www.omdbapi.com") {
+        event.respondWith(
+            caches.open(CACHE_NAME).then(cache => {
+                return cache.match(event.request).then(cachedResponse => {
+                    if (cachedResponse) {
+                        return cachedResponse
+                    } else {
+                        return fetch(event.request).then(response => {
+                            cache.put(event.request, response.clone());
+                            return response;
+                        }).catch(error => {
+                            console.error("Erreur lors du fetch : ", error);
+                        });
+                    }
+                });
+            })
+        );
+    } else {
+        // Gérer les autres requêtes
+        event.respondWith(
+            (async () => {
+                const cachedResponse = await caches.match(event.request);
+                if (cachedResponse) return cachedResponse;
 
-            const response = await event.preloadResponse;
-            if (response) return response
-
-            return fetch(event.request)
-        })(),
-    )
+                const response = await fetch(event.request);
+                return response;
+            })()
+        );
+    }
 });
