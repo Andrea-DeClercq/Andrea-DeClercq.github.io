@@ -14,7 +14,7 @@ self.addEventListener('install', event => {
     self.skipWaiting()
     let cacheResource = async() => {
         const cache = await caches.open(CACHE_NAME);
-        console.log(`Génération ${CACHE_NAME}`)
+        console.log(`Génération ${CACHE_NAME}`);
         return cache.addAll(RESOURCES);
     };
     event.waitUntil(cacheResource());
@@ -75,3 +75,15 @@ self.addEventListener('fetch', event => {
         );
     }
 });
+
+// self.addEventListener('offline', function(event) {
+//     // Lorsque la fenêtre est mise à jour cela envoie l'évènement, pour detecter directement il faut utiliser window
+//     const offlineMessage = "Vous êtes actuellement en mode hors connexion. Les données affichées sont potentiellement périmées.";
+//     const options = {
+//         body: offlineMessage,
+//         icon: `${BASE}/offline.png`
+//     };
+//     event.waitUntil(
+//         self.registration.showNotification("Hors connexion", options)
+//     );
+// });

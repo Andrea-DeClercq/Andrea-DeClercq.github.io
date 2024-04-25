@@ -10,7 +10,7 @@
 </head>
 <body>
     <div class="container">
-        <button class="btn btn-primary" id="notifications">Notif test</button>
+        <button class="btn btn-primary m-4" id="notifications">Film aléatoire</button>
         <h1 class="mt-5 mb-4 text-center">Les derniers films</h1>
         <div id="carouselFilm" class="carousel slide" data-ride="carousel">
             <div class="carousel-inner" id="carouselInner">
@@ -85,18 +85,7 @@
     });
     });
 
-    // Signal l'utilisateur du passage hors connexion
-    function sendOfflineNotification() {
-        const offlineMessage = "Vous êtes actuellement hors connexion.";
-        const options = {
-            body: offlineMessage,
-            icon: "/path/to/offline-icon.png"
-        };
-        if (Notification.permission === "granted") {
-            new Notification("Hors connexion", options);
-        }
-    }
-
+    // Fonction test pour faire une notification aléatoire des films présent dans la réponse
     function randomNotification() {
         const CACHE_NAME = "Cache 2.0"
         caches.open(CACHE_NAME).then(cache => {
@@ -124,6 +113,25 @@
             });
         });
     }
+
+    window.onoffline = (event) => {
+        const offlineMessage = "Vous êtes actuellement en mode hors connexion. Les données affichées sont potentiellement périmées.";
+        const options = {
+            body: offlineMessage,
+            icon: "/offline.png"
+        };
+        new Notification("Hors connexion", options);
+    };
+
+    window.ononline = (event) => {
+        const onlineMessage = "Vous êtes actuellement en mode en ligne. Les données affichées doivent potentiellement être raffraichis.";
+        const options = {
+            body: onlineMessage,
+            // icon: "./offline.png" J'ai pas d'icône
+        };
+        new Notification("En ligne", options);
+    };
+
 
     document.addEventListener('DOMContentLoaded', loadFilms);
     navigator.serviceWorker.register('./sw.js');
