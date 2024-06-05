@@ -38,14 +38,27 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <script>
-    const API_URL = "https://www.omdbapi.com/?apikey=4a05c0ae&s=Batman";
-
-    function loadFilms() {
-        fetch(API_URL)
-            .then(response => response.json())
-            .then(displayDataResponse)
-            .catch(error => console.error('Erreur lors de la récupération des films :', error));
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').then(registration => {
+            if (registration.waiting) {
+                registration.waiting.postMessage({ action: 'fetchFilms' });
+            } else if (registration.active) {
+                registration.active.postMessage({ action: 'fetchFilms' });
+            } else {
+                registration.installing.addEventListener('statechange', function() {
+                    if (this.state === 'activated') {
+                        this.postMessage({ action: 'fetchFilms' });
+                    }
+                });
+            }
+        });
     }
+
+    navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data.action === 'sendFilms') {
+            displayDataResponse(event.data.films);
+        }
+    });
 
     function displayDataResponse(data) {
         const carouselInner = document.getElementById('carouselInner');
@@ -75,44 +88,16 @@
         });
     }
 
-    // Permet d'envoyé un film aléatoire lors de la pression du bouton
     const button = document.getElementById("notifications");
     button.addEventListener("click", () => {
-    Notification.requestPermission().then((result) => {
-        if (result === "granted") {
-        randomNotification();
-        }
-    });
-    });
-
-    // Fonction test pour faire une notification aléatoire des films présent dans la réponse
-    function randomNotification() {
-        const CACHE_NAME = "Cache 2.0"
-        caches.open(CACHE_NAME).then(cache => {
-            cache.match(API_URL).then(response => {
-                if (response) {
-                    response.json().then(data => {
-                        const films = data.Search;
-                        if (films && films.length > 0) {
-                            const randomIndex = Math.floor(Math.random() * films.length);
-                            const film = films[randomIndex];
-                            const notifTitle = film.Title;
-                            const notifBody = `Sorti en ${film.Year}.`;
-                            const notifImg = film.Poster;
-                            const options = {
-                                body: notifBody,
-                                icon: notifImg,
-                            };
-                            if (Notification.permission === "granted") {
-                                new Notification(notifTitle, options);
-                                console.log('notif')
-                            }
-                        }
-                    });
-                }
-            });
+        Notification.requestPermission().then((result) => {
+            if (result === "granted") {
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.active.postMessage({ action: 'randomFilm' });
+                });
+            }
         });
-    }
+    });
 
     window.onoffline = (event) => {
         const offlineMessage = "Vous êtes actuellement en mode hors connexion. Les données affichées sont potentiellement périmées.";
@@ -127,13 +112,8 @@
         const onlineMessage = "Vous êtes actuellement en mode en ligne. Les données affichées doivent potentiellement être raffraichis.";
         const options = {
             body: onlineMessage,
-            // icon: "./offline.png" J'ai pas d'icône
         };
         new Notification("En ligne", options);
     };
-
-
-    document.addEventListener('DOMContentLoaded', loadFilms);
-    navigator.serviceWorker.register('./sw.js');
 </script>
 </html>

@@ -1,12 +1,12 @@
 const NAME = "SW V2.0"
-const BASE = location.protocol + "//" + location.host;
 const CACHE_NAME = "Cache 2.0"
 const RESOURCES = [
-        `${BASE}/index.html`,
-        `${BASE}/manifest.json`,
-        `${BASE}/films.json`,
-        `${BASE}/style.css`
-    ]
+    `./index.html`,
+    `./manifest.json`,
+    `./films.json`,
+    `./style.css`,
+    `./offline.png`,
+]
 const API_URL = "https://www.omdbapi.com/?apikey=4a05c0ae&s=Batman"
 
 self.addEventListener('install', event => {
@@ -68,7 +68,7 @@ self.addEventListener('fetch', event => {
         const offlineMessage = "Vous êtes actuellement en mode hors connexion. Les données affichées sont potentiellement périmées.";
         const options = {
             body: offlineMessage,
-            icon: `${BASE}/offline.png`
+            icon: `/offline.png`
         };
         event.waitUntil(
             self.registration.showNotification("Hors connexion", options)
@@ -76,14 +76,29 @@ self.addEventListener('fetch', event => {
     }
 });
 
-// self.addEventListener('offline', function(event) {
-//     // Lorsque la fenêtre est mise à jour cela envoie l'évènement, pour detecter directement il faut utiliser window
-//     const offlineMessage = "Vous êtes actuellement en mode hors connexion. Les données affichées sont potentiellement périmées.";
-//     const options = {
-//         body: offlineMessage,
-//         icon: `${BASE}/offline.png`
-//     };
-//     event.waitUntil(
-//         self.registration.showNotification("Hors connexion", options)
-//     );
-// });
+self.addEventListener('message', event => {
+    if (event.data.action === 'fetchFilms') {
+        fetchFilms().then(films => {
+            event.source.postMessage({ action: 'sendFilms', films: films });
+        });
+    } else if (event.data.action === 'randomFilm') {
+        fetchFilms().then(films => {
+            const filmsList = films.Search;
+            const randomIndex = Math.floor(Math.random() * filmsList.length);
+            const film = filmsList[randomIndex];
+            event.source.postMessage({ action: 'sendRandomFilm', film: film });
+        });
+    }
+});
+
+function fetchFilms() {
+    return fetch(API_URL)
+        .then(response => response.json())
+        .then(data => {
+            return data;
+        })
+        .catch(error => {
+            console.error('Erreur lors de la récupération des films :', error);
+            return null;
+        });
+}
