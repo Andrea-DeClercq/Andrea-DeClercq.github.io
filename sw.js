@@ -3,7 +3,7 @@ const BASE = location.protocol + "//" + location.host;
 const CACHE_NAME = "Cache 2.0"
 const RESOURCES = [
         `${BASE}/index.html`,
-        `${BASE}/app.webmanifest`,
+        `${BASE}/manifest.json`,
         `${BASE}/films.json`,
         `${BASE}/style.css`
     ]
