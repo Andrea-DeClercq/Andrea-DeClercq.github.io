@@ -99,6 +99,22 @@
         });
     });
 
+    window.onoffline = (event) => {
+        const offlineMessage = "Vous êtes actuellement en mode hors connexion. Les données affichées sont potentiellement périmées.";
+        const options = {
+            body: offlineMessage,
+            icon: "/offline.png"
+        };
+        new Notification("Hors connexion", options);
+    };
 
+    window.ononline = (event) => {
+        const onlineMessage = "Vous êtes actuellement en mode en ligne. Les données affichées doivent potentiellement être raffraichis.";
+        const options = {
+            body: onlineMessage,
+            // icon: "./offline.png" J'ai pas d'icône
+        };
+        new Notification("En ligne", options);
+    };
 </script>
 </html>
