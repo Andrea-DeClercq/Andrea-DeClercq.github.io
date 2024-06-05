@@ -13,6 +13,25 @@ const API_URL = "https://www.omdbapi.com/?apikey=4a05c0ae&s=Batman";
 self.addEventListener('install', event => {
     console.log(`${NAME} installing...`);
     self.skipWaiting();
+
+    event.waitUntil(
+        fetch(API_URL)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erreur lors de la récupération des données : ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                return caches.open(CACHE_NAME).then(cache => {
+                    return cache.put(API_URL, new Response(JSON.stringify(data)));
+                });
+            })
+            .catch(error => {
+                console.error('Erreur lors de la mise en cache de la réponse API lors de l\'installation :', error);
+            })
+    );
+
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
             console.log(`Génération ${CACHE_NAME}`);
@@ -35,21 +54,6 @@ self.addEventListener('activate', event => {
                 })
             );
         })
-    );
-    event.waitUntil(
-        fetch(API_URL)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Erreur lors de la récupération des données : ${response.statusText}`);
-                }
-                return caches.open(CACHE_NAME).then(cache => {
-                    cache.put(API_URL, response.clone());
-                    console.log('Réponse API mise en cache.');
-                });
-            })
-            .catch(error => {
-                console.error('Erreur lors de la mise en cache de la réponse API :', error);
-            })
     );
 });
 
